@@ -8,7 +8,16 @@ class ListExercise:
         :param input_list: Исходный список
         :return: Список с замененными элементами
         """
-        pass
+        if not input_list:
+            return input_list
+        max_value = input_list[0]
+        for items in input_list:
+            if items > max_value:
+                max_value = items
+        replaced_list = list(
+            map(lambda replaced: max_value if replaced > 0 else replaced, input_list)
+        )
+        return replaced_list
 
     @staticmethod
     def search(input_list: list[int], query: int) -> int:
@@ -20,4 +29,21 @@ class ListExercise:
         :param query: Искомый элемент
         :return: Номер элемента
         """
-        pass
+        if len(input_list) == 0:
+            return -1
+
+        mid = len(input_list) // 2
+
+        if input_list[mid] == query:
+            return mid
+
+        elif query < input_list[mid]:
+            return ListExercise.search(input_list[:mid], query)
+
+        else:
+            new_mid = mid + 1
+            result = ListExercise.search(input_list[new_mid:], query)
+            if result == -1:
+                return -1
+            else:
+                return mid + 1 + result
