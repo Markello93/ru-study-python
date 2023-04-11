@@ -1,0 +1,56 @@
+#Создаем таблицу regions (Регионы)
+CREATE TABLE "regions" (
+  id serial PRIMARY KEY,
+  name varchar
+);
+#Создаем таблицу locations (Расположения)
+CREATE TABLE "locations" (
+  id serial PRIMARY KEY,
+  address varchar,
+  region_id int,
+  FOREIGN KEY(region_id) REFERENCES regions(id)
+);
+#Создаем таблицу departments (Подразделения)
+CREATE TABLE "departments" (
+  id serial PRIMARY KEY,
+  name varchar,
+  location_id int,
+  manager_id int,
+  FOREIGN KEY(location_id) REFERENCES locations (id)
+);
+
+#Создаем таблицу employees (работники, включая менеджеров)
+CREATE TABLE "employees" (
+  id serial PRIMARY KEY,
+  name varchar,
+  last_name varchar,
+  hire DATE,
+  salary int,
+  email varchar,
+  manager_id int,
+  department_id  int,
+  FOREIGN KEY(department_id) REFERENCES departments (id),
+  FOREIGN KEY(manager_id) REFERENCES employees (id)
+);
+
+# Добавляем FOREIGN KEY manager_id к таблице departments
+ALTER TABLE departments ADD CONSTRAINT fk_manager_id FOREIGN KEY(manager_id) REFERENCES employees(id);
+
+# Выборки
+# 1)Показать работников у которых нет почты или почта не в корпоративном домене (домен dualbootpartners.com)
+SELECT * FROM employees WHERE email is NULL OR email NOT LIKE '%@dualbootpartners.com';
+# 2)Получить список работников нанятых в последние 30 дней
+SELECT * FROM employees WHERE AGE(NOW(), hire) <= INTERVAL '30 days';
+# 3) Найти максимальную и минимальную зарплату по каждому департаменту
+SELECT department_id, MAX(salary) AS max_salary, MIN(salary) AS min_salary FROM employees GROUP BY department_id;
+# 4)Посчитать количество работников в каждом регионе
+SELECT r.name AS region_name, COUNT(*) AS employees_count
+FROM employees e
+INNER JOIN departments d ON e.department_id = d.id
+INNER JOIN locations l ON d.location_id = l.id
+INNER JOIN regions r ON l.region_id = r.id
+GROUP BY r.name;
+# 5)Показать сотрудников у которых фамилия длиннее 10 символов
+SELECT * FROM employees WHERE LENGTH(last_name) > 10;
+# 6) Показать сотрудников с зарплатой выше средней по всей компании
+SELECT * FROM employees WHERE salary > (SELECT AVG(salary) FROM employees);
